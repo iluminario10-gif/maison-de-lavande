@@ -1,0 +1,2006 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F8F5FC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17121F" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Controle de vendas, compras, estoque e lucro da Maison de Lavande.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Maison de Lavande">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg: #F8F5FC;
+  --surface: #FFFFFF;
+  --surface-2: #F1ECFA;
+  --ink: #2A2140;
+  --muted: #6E6486;
+  --line: #E4DCF2;
+  --accent: #7A5FBE;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #EEE8FA;
+  --ok: #2E7D5B;
+  --ok-soft: #DDF2E8;
+  --warn: #9A6410;
+  --warn-soft: #FBEED3;
+  --bad: #B42318;
+  --bad-soft: #FBE2DF;
+  --shadow: 0 1px 2px rgba(42, 33, 64, .05), 0 8px 22px rgba(42, 33, 64, .07);
+  --radius: 16px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17121F;
+    --surface: #221A2F;
+    --surface-2: #2B2240;
+    --ink: #F1ECFA;
+    --muted: #A99CC4;
+    --line: #3A2F52;
+    --accent: #B39BEA;
+    --accent-ink: #1A1326;
+    --accent-soft: #33284C;
+    --ok: #6BCB9A;
+    --ok-soft: #1B3A2C;
+    --warn: #E7B45A;
+    --warn-soft: #3A2F16;
+    --bad: #FF8A7A;
+    --bad-soft: #3D221F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: .2px; }
+h1 { font-size: 28px; }
+h2 { font-size: 22px; }
+h3 { font-size: 17px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* ---------- topo ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 14px) 18px 12px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark { width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto; display: block; }
+.brand-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: 12px; color: var(--muted); }
+.icon-btn {
+  border: 0; background: var(--surface); width: 40px; height: 40px; border-radius: 12px;
+  display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow); flex: 0 0 auto;
+}
+
+/* ---------- conteúdo ---------- */
+main.view { padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); max-width: 720px; margin: 0 auto; }
+.screen-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 4px 0 14px; flex-wrap: wrap; }
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.mt { margin-top: 18px; }
+.row { display: flex; gap: 10px; align-items: center; }
+.spread { justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+
+.card {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px; margin-bottom: 14px;
+}
+.card-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+/* ---------- indicadores ---------- */
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.kpi {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px;
+  border: 1px solid var(--line);
+}
+.kpi-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.kpi-value { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 700; margin-top: 2px; }
+.kpi-delta { font-size: 12.5px; margin-top: 2px; }
+.kpi.wide { grid-column: 1 / -1; }
+.up { color: var(--ok); }
+.down { color: var(--bad); }
+
+/* ---------- botões e controles ---------- */
+.btn {
+  border: 0; border-radius: 12px; padding: 11px 16px; cursor: pointer; font-weight: 600;
+  background: var(--surface-2); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-danger { background: var(--bad-soft); color: var(--bad); }
+.btn-ghost { background: transparent; color: var(--accent); padding-left: 4px; padding-right: 4px; }
+.btn-block { width: 100%; }
+.btn-sm { padding: 7px 11px; font-size: 13px; border-radius: 10px; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 12px; padding: 3px; gap: 2px; }
+.seg button {
+  border: 0; background: transparent; padding: 7px 12px; border-radius: 9px; cursor: pointer; color: var(--muted); font-weight: 600; font-size: 13px;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-nav .lbl { min-width: 96px; text-align: center; font-weight: 700; }
+
+/* ---------- listas ---------- */
+.list { display: flex; flex-direction: column; }
+.item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 0; border-top: 1px solid var(--line);
+}
+.item:first-child { border-top: 0; padding-top: 2px; }
+.item-main { min-width: 0; flex: 1; }
+.item-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 12.5px; color: var(--muted); }
+.item-right { text-align: right; flex: 0 0 auto; }
+.item-right .money { font-weight: 700; }
+.item-btn { border: 0; background: transparent; color: var(--accent); padding: 6px; cursor: pointer; font-size: 13px; }
+
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
+  background: var(--surface-2); color: var(--muted);
+}
+.b-repor, .b-esgotado { background: var(--bad-soft); color: var(--bad); }
+.b-atencao { background: var(--warn-soft); color: var(--warn); }
+.b-ok { background: var(--ok-soft); color: var(--ok); }
+.b-parado { background: var(--surface-2); color: var(--muted); }
+
+/* ---------- gráficos ---------- */
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.bar-faturamento { fill: var(--accent); }
+.bar-lucro { fill: #C9B8F0; }
+.hbar { margin: 8px 0; }
+.hbar-head { display: flex; justify-content: space-between; font-size: 13.5px; gap: 8px; }
+.hbar-track { height: 9px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-top: 5px; }
+.hbar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #B39BEA, var(--accent)); }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+.compare { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.compare th, .compare td { padding: 9px 4px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.compare th:first-child, .compare td:first-child { text-align: left; }
+.compare thead th { border-top: 0; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ---------- formulários (folha inferior) ---------- */
+.overlay {
+  position: fixed; inset: 0; background: rgba(20, 14, 32, .42); z-index: 20;
+  display: flex; align-items: flex-end; justify-content: center; animation: fade .18s ease;
+}
+.sheet {
+  width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto;
+  background: var(--bg); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  animation: up .22s ease;
+}
+.sheet-grip { width: 42px; height: 5px; border-radius: 999px; background: var(--line); margin: -6px auto 10px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field.full { grid-column: 1 / -1; }
+.field label { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); outline: none; min-height: 44px;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field textarea { min-height: 70px; resize: vertical; }
+.calc-box {
+  grid-column: 1 / -1; background: var(--accent-soft); border-radius: 14px; padding: 12px 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 13.5px;
+}
+.calc-box .v { font-weight: 700; font-size: 16px; }
+.calc-box .full { grid-column: 1 / -1; }
+.warn-line { color: var(--warn); font-size: 13px; grid-column: 1 / -1; }
+.err-line { color: var(--bad); font-size: 13px; grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 10px; margin-top: 14px; }
+.form-actions .btn { flex: 1; }
+
+/* ---------- navegação inferior ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+}
+.tab {
+  border: 0; background: transparent; color: var(--muted); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-size: 11.5px; font-weight: 600; border-radius: 12px;
+}
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--accent); }
+.tab[aria-current="page"] .ico { background: var(--accent-soft); }
+.tab .ico { padding: 5px 16px; border-radius: 999px; transition: background .2s; }
+
+/* ---------- estados vazios e avisos ---------- */
+.empty { text-align: center; padding: 26px 12px; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); margin-bottom: 4px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 30;
+  box-shadow: var(--shadow); animation: up .2s ease; max-width: calc(100% - 32px);
+}
+.notice { background: var(--warn-soft); color: var(--warn); border-radius: 14px; padding: 11px 13px; font-size: 13.5px; margin-bottom: 14px; }
+.footer-note { text-align: center; font-size: 12px; color: var(--muted); margin: 22px 0 6px; }
+
+@keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (min-width: 720px) {
+  .kpis { grid-template-columns: repeat(4, 1fr); }
+  .kpi.wide { grid-column: auto; }
+  .tabbar { left: 50%; transform: translateX(-50%); width: 480px; border-radius: 22px 22px 0 0; }
+}
+@media (max-width: 360px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .calc-box { grid-template-columns: 1fr; }
+}
+
+</style>
+<title>Maison de Lavande</title>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" id="topbar-brand"></div>
+  <button class="icon-btn" id="btn-config" aria-label="Configurações">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+  </button>
+</header>
+
+<noscript><div class="empty" style="padding:40px">Este app precisa de JavaScript para funcionar.</div></noscript>
+
+<main class="view" id="app" aria-live="polite"></main>
+
+<nav class="tabbar" id="tabbar" aria-label="Navegação principal"></nav>
+
+<script>
+/*
+ * Maison de Lavande — cálculos puros (sem tela, sem armazenamento).
+ * Usado pelo app no navegador e pelos testes no Node.
+ */
+(function (root) {
+  'use strict';
+
+  const JANELA_GIRO_DIAS = 60;      // janela para medir o que mais vende
+  const COBERTURA_ALVO_DIAS = 30;   // quantos dias de venda a reposição deve cobrir
+  const COBERTURA_ALERTA_DIAS = 15; // abaixo disso, o produto precisa de reposição
+  const COBERTURA_ATENCAO_DIAS = 30;
+
+  const FORMAS_PAGAMENTO = ['Pix', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Transferência', 'Outro'];
+
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+  const soma = (lista, campo) => lista.reduce((acc, item) => acc + Number(item[campo] || 0), 0);
+
+  // ---------- datas (sempre no fuso local, nunca toISOString) ----------
+  function hojeISO(d) {
+    const dt = d || new Date();
+    return dt.getFullYear() + '-' +
+      String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+      String(dt.getDate()).padStart(2, '0');
+  }
+
+  function mesDe(dataISO) { return String(dataISO || '').slice(0, 7); }
+
+  function deslocarDias(iso, n) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return hojeISO(new Date(y, m - 1, d + n));
+  }
+
+  function deslocarMes(ym, delta) {
+    const [y, m] = ym.split('-').map(Number);
+    const dt = new Date(y, m - 1 + delta, 1);
+    return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+  }
+
+  function nomeMes(ym) {
+    const nomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const [y, m] = ym.split('-');
+    return nomes[Number(m) - 1] + '/' + y;
+  }
+
+  // ---------- preço e lucro ----------
+  // Preço final = custo + percentual de acréscimo sobre o custo.
+  function precoFinal(custo, acrescimoPct) {
+    return round2(Number(custo) * (1 + Number(acrescimoPct || 0) / 100));
+  }
+
+  function calcVenda(v) {
+    const valorTotal = round2(v.quantidade * v.precoUnitario);
+    const custoTotal = round2(v.quantidade * v.custoUnitario);
+    const lucro = round2(valorTotal - custoTotal);
+    const margem = valorTotal > 0 ? round2((lucro / valorTotal) * 100) : 0;
+    return Object.assign({}, v, { valorTotal, custoTotal, lucro, margem });
+  }
+
+  function calcCompra(c) {
+    return Object.assign({}, c, {
+      custoTotal: round2(c.quantidade * c.custoUnitario),
+      precoVendaSugerido: precoFinal(c.custoUnitario, c.acrescimo),
+    });
+  }
+
+  // ---------- estoque ----------
+  // Saldo de cada produto: estoque inicial + compras + ajustes − vendas.
+  function saldosPorProduto(state) {
+    const mapa = {};
+    (state.produtos || []).forEach((p) => { mapa[p.id] = Number(p.estoqueInicial || 0); });
+    const aplicar = (lista, sinal) => (lista || []).forEach((item) => {
+      if (mapa[item.produtoId] === undefined) mapa[item.produtoId] = 0;
+      mapa[item.produtoId] += sinal * Number(item.quantidade || 0);
+    });
+    aplicar(state.compras, 1);
+    aplicar(state.ajustes, 1); // ajustes já trazem o sinal (+ ou −)
+    aplicar(state.vendas, -1);
+    return mapa;
+  }
+
+  // Analisa cada produto ativo: giro recente, cobertura em dias e o que repor.
+  function analiseReposicao(state, hoje) {
+    const dia = hoje || hojeISO();
+    const limite = deslocarDias(dia, -JANELA_GIRO_DIAS);
+    const saldos = saldosPorProduto(state);
+
+    const vendidos = {};
+    (state.vendas || []).forEach((v) => {
+      if (v.data >= limite && v.data <= dia) {
+        vendidos[v.produtoId] = (vendidos[v.produtoId] || 0) + Number(v.quantidade || 0);
+      }
+    });
+
+    const ordemStatus = { repor: 0, esgotado: 0, atencao: 1, ok: 2, parado: 3 };
+
+    return (state.produtos || [])
+      .filter((p) => p.ativo !== false)
+      .map((p) => {
+        const estoque = saldos[p.id] || 0;
+        const vendas60 = vendidos[p.id] || 0;
+        const mediaDiaria = vendas60 / JANELA_GIRO_DIAS;
+        const minimo = Number(p.estoqueMinimo || 0);
+        const cobertura = mediaDiaria > 0 ? estoque / mediaDiaria : null; // null = sem giro
+        let status;
+        if (vendas60 === 0) status = 'parado';
+        else if (estoque <= 0) status = 'esgotado';
+        else if (estoque <= minimo || (cobertura !== null && cobertura < COBERTURA_ALERTA_DIAS)) status = 'repor';
+        else if (cobertura !== null && cobertura < COBERTURA_ATENCAO_DIAS) status = 'atencao';
+        else status = 'ok';
+
+        const sugestaoCompra = Math.max(0, Math.ceil(mediaDiaria * COBERTURA_ALVO_DIAS + minimo - estoque));
+        return {
+          produtoId: p.id,
+          nome: p.nome,
+          estoque,
+          estoqueMinimo: minimo,
+          vendas60,
+          mediaDiaria: round2(mediaDiaria * 100) / 100,
+          coberturaDias: cobertura === null ? null : Math.floor(cobertura),
+          status,
+          sugestaoCompra: status === 'parado' ? 0 : sugestaoCompra,
+          _rank: ordemStatus[status],
+        };
+      })
+      .sort((a, b) => a._rank - b._rank || b.vendas60 - a.vendas60)
+      .map((r) => { const { _rank, ...rest } = r; return rest; });
+  }
+
+  // ---------- resumos por período ----------
+  function resumoMes(vendas, ym) {
+    const lista = (vendas || []).filter((v) => mesDe(v.data) === ym).map(calcVenda);
+    const faturamento = round2(soma(lista, 'valorTotal'));
+    const custo = round2(soma(lista, 'custoTotal'));
+    const lucro = round2(faturamento - custo);
+    const unidades = soma(lista, 'quantidade');
+    return {
+      mes: ym,
+      pedidos: lista.length,
+      unidades,
+      faturamento,
+      custo,
+      lucro,
+      margem: faturamento > 0 ? round2((lucro / faturamento) * 100) : 0,
+      ticketMedio: lista.length ? round2(faturamento / lista.length) : 0,
+    };
+  }
+
+  function serieMensal(vendas, ymFim, meses) {
+    const total = meses || 12;
+    const saida = [];
+    for (let i = total - 1; i >= 0; i--) saida.push(resumoMes(vendas, deslocarMes(ymFim, -i)));
+    return saida;
+  }
+
+  function variacaoPct(antes, depois) {
+    if (!antes) return null; // sem base de comparação
+    return round2(((depois - antes) / Math.abs(antes)) * 100);
+  }
+
+  function compararMeses(vendas, ymA, ymB) {
+    const a = resumoMes(vendas, ymA);
+    const b = resumoMes(vendas, ymB);
+    return {
+      a,
+      b,
+      variacao: {
+        faturamento: variacaoPct(a.faturamento, b.faturamento),
+        lucro: variacaoPct(a.lucro, b.lucro),
+        unidades: variacaoPct(a.unidades, b.unidades),
+        pedidos: variacaoPct(a.pedidos, b.pedidos),
+        margemPontos: round2(b.margem - a.margem),
+      },
+    };
+  }
+
+  function rankingProdutos(vendas, ym, limite) {
+    const mapa = {};
+    (vendas || []).filter((v) => mesDe(v.data) === ym).map(calcVenda).forEach((v) => {
+      const k = v.produtoId;
+      if (!mapa[k]) mapa[k] = { produtoId: k, nome: v.nomeProduto, unidades: 0, faturamento: 0, lucro: 0 };
+      mapa[k].unidades += Number(v.quantidade);
+      mapa[k].faturamento += v.valorTotal;
+      mapa[k].lucro += v.lucro;
+    });
+    return Object.values(mapa)
+      .map((r) => Object.assign(r, { faturamento: round2(r.faturamento), lucro: round2(r.lucro) }))
+      .sort((x, y) => y.unidades - x.unidades || y.faturamento - x.faturamento)
+      .slice(0, limite || 10);
+  }
+
+  function mixPagamento(vendas, ym) {
+    const mapa = {};
+    let total = 0;
+    (vendas || []).filter((v) => mesDe(v.data) === ym).forEach((v) => {
+      const valor = Number(v.quantidade) * Number(v.precoUnitario);
+      mapa[v.formaPagamento || 'Outro'] = (mapa[v.formaPagamento || 'Outro'] || 0) + valor;
+      total += valor;
+    });
+    return Object.keys(mapa)
+      .map((forma) => ({
+        forma,
+        valor: round2(mapa[forma]),
+        percentual: total > 0 ? round2((mapa[forma] / total) * 100) : 0,
+      }))
+      .sort((x, y) => y.valor - x.valor);
+  }
+
+  // ---------- validações ----------
+  function validarVenda(v, estoqueDisponivel) {
+    const erros = [];
+    const avisos = [];
+    if (!v.data) erros.push('Informe a data da venda.');
+    if (!v.produtoId) erros.push('Escolha um produto cadastrado.');
+    if (!Number.isInteger(Number(v.quantidade)) || Number(v.quantidade) <= 0) erros.push('A quantidade deve ser um número inteiro maior que zero.');
+    if (!(Number(v.precoUnitario) >= 0) || v.precoUnitario === '' || v.precoUnitario === null) erros.push('Informe o valor de venda.');
+    if (!v.formaPagamento) erros.push('Escolha a forma de pagamento.');
+    if (typeof estoqueDisponivel === 'number' && Number(v.quantidade) > estoqueDisponivel) {
+      avisos.push('Estoque insuficiente: há ' + estoqueDisponivel + ' unidade(s) cadastradas. A venda será registrada mesmo assim.');
+    }
+    return { erros, avisos };
+  }
+
+  function validarCompra(c) {
+    const erros = [];
+    if (!c.data) erros.push('Informe a data da compra.');
+    if (!c.produtoId) erros.push('Escolha um produto cadastrado.');
+    if (!(Number(c.quantidade) > 0)) erros.push('A quantidade comprada deve ser maior que zero.');
+    if (!(Number(c.custoUnitario) >= 0) || c.custoUnitario === '' || c.custoUnitario === null) erros.push('Informe o custo unitário.');
+    if (!(Number(c.acrescimo) >= 0) || c.acrescimo === '' || c.acrescimo === null) erros.push('Informe o percentual de acréscimo (0 ou mais).');
+    return erros;
+  }
+
+  const Calc = {
+    FORMAS_PAGAMENTO,
+    JANELA_GIRO_DIAS,
+    COBERTURA_ALVO_DIAS,
+    round2,
+    hojeISO,
+    mesDe,
+    deslocarDias,
+    deslocarMes,
+    nomeMes,
+    precoFinal,
+    calcVenda,
+    calcCompra,
+    saldosPorProduto,
+    analiseReposicao,
+    resumoMes,
+    serieMensal,
+    compararMeses,
+    rankingProdutos,
+    mixPagamento,
+    validarVenda,
+    validarCompra,
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = Calc;
+  else root.Calc = Calc;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Maison de Lavande — armazenamento local (localStorage), backup e exemplos.
+ * Os dados ficam só neste aparelho/navegador. Use "Exportar backup" para guardar uma cópia.
+ */
+(function (root) {
+  'use strict';
+
+  const CHAVE = 'mdl.dados';
+  const VERSAO_SCHEMA = 1;
+
+  function novoId() {
+    if (root.crypto && root.crypto.randomUUID) return root.crypto.randomUUID();
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function vazio() {
+    return {
+      schema: VERSAO_SCHEMA,
+      produtos: [],
+      compras: [],
+      vendas: [],
+      ajustes: [],
+      configuracoes: { nomeLoja: 'Maison de Lavande' },
+    };
+  }
+
+  function normalizar(dados) {
+    const base = vazio();
+    const d = dados && typeof dados === 'object' ? dados : {};
+    ['produtos', 'compras', 'vendas', 'ajustes'].forEach((k) => {
+      base[k] = Array.isArray(d[k]) ? d[k] : [];
+    });
+    if (d.configuracoes && typeof d.configuracoes === 'object') {
+      base.configuracoes = Object.assign(base.configuracoes, d.configuracoes);
+    }
+    return base;
+  }
+
+  let estado = vazio();
+
+  function carregar() {
+    try {
+      const bruto = root.localStorage && root.localStorage.getItem(CHAVE);
+      estado = bruto ? normalizar(JSON.parse(bruto)) : vazio();
+    } catch (e) {
+      console.warn('Não foi possível ler os dados salvos.', e);
+      estado = vazio();
+    }
+    return estado;
+  }
+
+  function salvar() {
+    try {
+      root.localStorage.setItem(CHAVE, JSON.stringify(estado));
+      return true;
+    } catch (e) {
+      console.error('Falha ao salvar. O armazenamento do navegador pode estar cheio.', e);
+      return false;
+    }
+  }
+
+  // Operações: cada uma altera o estado em memória e salva em seguida.
+  const Store = {
+    get: () => estado,
+
+    carregar,
+
+    // ----- produtos (cadastro fixo) -----
+    addProduto(dados) {
+      const p = Object.assign({
+        id: novoId(), ativo: true, unidade: 'un', categoria: '',
+        acrescimo: 100, precoVenda: 0, custoAtual: 0, estoqueInicial: 0, estoqueMinimo: 0,
+      }, dados);
+      estado.produtos.push(p);
+      salvar();
+      return p;
+    },
+    updateProduto(id, dados) {
+      const p = estado.produtos.find((x) => x.id === id);
+      if (p) Object.assign(p, dados);
+      salvar();
+      return p;
+    },
+    // Produto com histórico não é apagado: fica inativo e some das listas de venda/compra.
+    desativarProduto(id) {
+      return Store.updateProduto(id, { ativo: false });
+    },
+
+    // ----- vendas -----
+    addVenda(dados) {
+      const v = Object.assign({ id: novoId() }, dados);
+      estado.vendas.push(v);
+      salvar();
+      return v;
+    },
+    updateVenda(id, dados) {
+      const v = estado.vendas.find((x) => x.id === id);
+      if (v) Object.assign(v, dados);
+      salvar();
+      return v;
+    },
+    removerVenda(id) {
+      estado.vendas = estado.vendas.filter((x) => x.id !== id);
+      salvar();
+    },
+
+    // ----- compras / reposição -----
+    addCompra(dados) {
+      const c = Object.assign({ id: novoId() }, dados);
+      estado.compras.push(c);
+      salvar();
+      return c;
+    },
+    removerCompra(id) {
+      estado.compras = estado.compras.filter((x) => x.id !== id);
+      salvar();
+    },
+
+    // ----- ajustes de estoque (perdas, contagem, brindes) -----
+    addAjuste(dados) {
+      const a = Object.assign({ id: novoId() }, dados);
+      estado.ajustes.push(a);
+      salvar();
+      return a;
+    },
+    removerAjuste(id) {
+      estado.ajustes = estado.ajustes.filter((x) => x.id !== id);
+      salvar();
+    },
+
+    // ----- configurações -----
+    setConfig(dados) {
+      Object.assign(estado.configuracoes, dados);
+      salvar();
+    },
+
+    // ----- backup -----
+    exportarJSON() {
+      return JSON.stringify(Object.assign({ exportadoEm: new Date().toISOString(), app: 'Maison de Lavande' }, estado), null, 2);
+    },
+    importarJSON(texto) {
+      const dados = JSON.parse(texto);
+      if (!dados || !Array.isArray(dados.vendas) || !Array.isArray(dados.produtos)) {
+        throw new Error('Arquivo de backup inválido.');
+      }
+      estado = normalizar(dados);
+      salvar();
+      return estado;
+    },
+    limparTudo() {
+      estado = vazio();
+      salvar();
+    },
+    carregarExemplos(produtosExemplo, vendasExemplo, comprasExemplo) {
+      estado = normalizar({
+        produtos: produtosExemplo,
+        vendas: vendasExemplo,
+        compras: comprasExemplo,
+        ajustes: [],
+        configuracoes: estado.configuracoes,
+      });
+      salvar();
+    },
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = Store;
+  else root.Store = Store;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Maison de Lavande — helpers de interface compartilhados pelas telas.
+ */
+(function (root) {
+  'use strict';
+
+  const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const numero = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+
+  const UI = {
+    tela: 'painel',
+    mes: null, // 'YYYY-MM', definido na inicialização
+  };
+
+  function esc(texto) {
+    return String(texto == null ? '' : texto)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function dinheiro(n) { return brl.format(Number(n) || 0); }
+  function quantidade(n) { return numero.format(Number(n) || 0); }
+  function percentual(n) {
+    if (n === null || n === undefined || Number.isNaN(n)) return '—';
+    return numero.format(Number(n)) + '%';
+  }
+  // Variação com seta e cor; base zero vira traço.
+  function variacao(n) {
+    if (n === null || n === undefined) return '<span class="muted">sem base</span>';
+    const sinal = n > 0 ? '▲ +' : (n < 0 ? '▼ ' : '• ');
+    const cls = n > 0 ? 'up' : (n < 0 ? 'down' : 'muted');
+    return '<span class="' + cls + '">' + sinal + numero.format(Math.abs(n)) + '%</span>';
+  }
+  function dataBR(iso) {
+    if (!iso) return '';
+    const [y, m, d] = String(iso).split('-');
+    return d + '/' + m + '/' + y;
+  }
+  // Aceita "1.234,56", "12,5" ou "12.5" e devolve número (ou NaN se vazio).
+  function ler(valor) {
+    if (valor === null || valor === undefined) return NaN;
+    const s = String(valor).trim();
+    if (s === '') return NaN;
+    const normal = s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s;
+    return Number(normal);
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    let el = document.querySelector('.toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'toast';
+      el.setAttribute('role', 'status');
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.remove(), 2600);
+  }
+
+  // Folha inferior para formulários. aoMontar(sheetEl) liga os eventos do formulário.
+  function abrirFolha(titulo, html, aoMontar) {
+    fecharFolha();
+    const ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML =
+      '<div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(titulo) + '">' +
+        '<div class="sheet-grip"></div>' +
+        '<div class="sheet-head"><h2>' + esc(titulo) + '</h2>' +
+        '<button class="icon-btn" data-fechar aria-label="Fechar">✕</button></div>' +
+        html +
+      '</div>';
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-fechar]')) fecharFolha(); });
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+    if (aoMontar) aoMontar(ov.querySelector('.sheet'));
+    const primeiro = ov.querySelector('input, select');
+    if (primeiro && window.matchMedia('(min-width: 720px)').matches) primeiro.focus();
+    return ov.querySelector('.sheet');
+  }
+  function fecharFolha() {
+    document.querySelectorAll('.overlay').forEach((o) => o.remove());
+    document.body.style.overflow = '';
+  }
+
+  function opcoesProdutos(produtos, selecionado) {
+    const ativos = produtos.filter((p) => p.ativo !== false);
+    return '<option value="">Escolha um produto…</option>' + ativos.map((p) =>
+      '<option value="' + esc(p.id) + '"' + (p.id === selecionado ? ' selected' : '') + '>' + esc(p.nome) + '</option>'
+    ).join('');
+  }
+
+  function opcoesPagamento(selecionado, formas) {
+    return formas.map((f) => '<option' + (f === selecionado ? ' selected' : '') + '>' + esc(f) + '</option>').join('');
+  }
+
+  function vazio(titulo, texto) {
+    return '<div class="empty"><strong>' + esc(titulo) + '</strong>' + esc(texto) + '</div>';
+  }
+
+  // Ícones simples (traço), usados na barra inferior.
+  const ICONES = {
+    painel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
+    vendas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>',
+    compras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h2l2.4 11h10.2l2-7H7"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>',
+    estoque: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>',
+    produtos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>',
+    config: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  };
+
+  const UIExport = {
+    esc, dinheiro, quantidade, percentual, variacao, dataBR, ler, toast,
+    abrirFolha, fecharFolha, opcoesProdutos, opcoesPagamento, vazio, ICONES, state: UI,
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = UIExport;
+  else root.UI = UIExport;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Painel: indicadores do mês, gráficos, mais vendidos, reposição e comparação de períodos.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc, dinheiro, quantidade, variacao } = UI;
+
+  function mesAnterior(mes) { return Calc.deslocarMes(mes, -1); }
+
+  // Gráfico de barras agrupadas: faturamento (roxo) e lucro (lilás), 12 meses.
+  function graficoMensal(serie) {
+    const W = 640, H = 230, padL = 6, padT = 14, padB = 26;
+    const max = Math.max(1, ...serie.map((s) => s.faturamento));
+    const areaH = H - padT - padB;
+    const grupo = (W - padL * 2) / serie.length;
+    const bw = Math.min(18, grupo * 0.32);
+    let svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Faturamento e lucro dos últimos 12 meses">';
+    for (let i = 1; i <= 3; i++) {
+      const y = padT + areaH - areaH * (i / 3);
+      svg += '<line x1="' + padL + '" x2="' + (W - padL) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-dasharray="3 4"/>';
+    }
+    serie.forEach((s, i) => {
+      const cx = padL + grupo * i + grupo / 2;
+      const hF = areaH * (s.faturamento / max);
+      const hL = areaH * (Math.max(0, s.lucro) / max);
+      svg += '<rect class="bar-faturamento" x="' + (cx - bw - 1) + '" y="' + (padT + areaH - hF) + '" width="' + bw + '" height="' + hF + '" rx="4">' +
+        '<title>' + UI.esc(Calc.nomeMes(s.mes)) + ' · faturamento ' + dinheiro(s.faturamento) + '</title></rect>';
+      svg += '<rect class="bar-lucro" x="' + (cx + 1) + '" y="' + (padT + areaH - hL) + '" width="' + bw + '" height="' + hL + '" rx="4">' +
+        '<title>' + UI.esc(Calc.nomeMes(s.mes)) + ' · lucro ' + dinheiro(s.lucro) + '</title></rect>';
+      svg += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(Calc.nomeMes(s.mes).slice(0, 3)) + '</text>';
+    });
+    return svg + '</svg>';
+  }
+
+  function barrasHorizontais(itens, valorDe, textoDe, rotuloDe) {
+    const max = Math.max(1, ...itens.map(valorDe));
+    return itens.map((it) =>
+      '<div class="hbar"><div class="hbar-head"><span>' + esc(rotuloDe(it)) + '</span><span class="muted">' + esc(textoDe(it)) + '</span></div>' +
+      '<div class="hbar-track"><div class="hbar-fill" style="width:' + Math.max(3, (valorDe(it) / max) * 100).toFixed(1) + '%"></div></div></div>'
+    ).join('');
+  }
+
+  function kpi(rotulo, valor, extra, classe) {
+    return '<div class="kpi"><div class="kpi-label">' + rotulo + '</div>' +
+      '<div class="kpi-value ' + (classe || '') + '">' + valor + '</div>' +
+      (extra ? '<div class="kpi-delta">' + extra + '</div>' : '') + '</div>';
+  }
+
+  function opcoesMeses(selecionado) {
+    const hoje = UI.state.mes;
+    let html = '';
+    for (let i = 0; i < 24; i++) {
+      const m = Calc.deslocarMes(hoje, -i);
+      html += '<option value="' + m + '"' + (m === selecionado ? ' selected' : '') + '>' + Calc.nomeMes(m) + '</option>';
+    }
+    return html;
+  }
+
+  function cardComparacao() {
+    const s = Store.get();
+    const a = UI.state.cmpA || mesAnterior(UI.state.mes);
+    const b = UI.state.cmpB || UI.state.mes;
+    const cmp = Calc.compararMeses(s.vendas, a, b);
+    const linha = (rotulo, va, vb, varPct, formato) => '<tr><td>' + rotulo + '</td><td>' + formato(va) + '</td><td>' + formato(vb) + '</td><td>' + (varPct === undefined ? '' : variacao(varPct)) + '</td></tr>';
+    const m = (v) => dinheiro(v);
+    const n = (v) => String(v);
+    const pc = (v) => UI.percentual(v);
+    return '' +
+      '<div class="card-title"><h3>Comparar períodos</h3></div>' +
+      '<div class="form-grid" style="gap:8px;margin-bottom:10px">' +
+        '<div class="field"><label for="cmp-a">Período A</label><select id="cmp-a">' + opcoesMeses(a) + '</select></div>' +
+        '<div class="field"><label for="cmp-b">Período B</label><select id="cmp-b">' + opcoesMeses(b) + '</select></div>' +
+      '</div>' +
+      '<div style="overflow-x:auto"><table class="compare"><thead><tr><th></th><th>' + Calc.nomeMes(a) + '</th><th>' + Calc.nomeMes(b) + '</th><th>Var.</th></tr></thead><tbody>' +
+        linha('Faturamento', cmp.a.faturamento, cmp.b.faturamento, cmp.variacao.faturamento, m) +
+        linha('Lucro', cmp.a.lucro, cmp.b.lucro, cmp.variacao.lucro, m) +
+        linha('Margem', cmp.a.margem, cmp.b.margem, undefined, pc) +
+        linha('Pedidos', cmp.a.pedidos, cmp.b.pedidos, cmp.variacao.pedidos, n) +
+        linha('Unidades', cmp.a.unidades, cmp.b.unidades, cmp.variacao.unidades, n) +
+        linha('Ticket médio', cmp.a.ticketMedio, cmp.b.ticketMedio, undefined, m) +
+      '</tbody></table></div>' +
+      '<div class="footer-note" style="margin:8px 0 0">Margem: variação em pontos percentuais (' + (cmp.variacao.margemPontos >= 0 ? '+' : '') + UI.percentual(cmp.variacao.margemPontos) + ').</div>';
+  }
+
+  function render() {
+    const s = Store.get();
+    const mes = UI.state.mes;
+    const atual = Calc.resumoMes(s.vendas, mes);
+    const cmpMes = Calc.compararMeses(s.vendas, mesAnterior(mes), mes);
+    const serie = Calc.serieMensal(s.vendas, mes, 12);
+    const top = Calc.rankingProdutos(s.vendas, mes, 8);
+    const pagamentos = Calc.mixPagamento(s.vendas, mes);
+    const reposicao = Calc.analiseReposicao(s, Calc.hojeISO()).filter((a) => a.status === 'repor' || a.status === 'esgotado').slice(0, 4);
+    const temVendas = s.vendas.length > 0;
+
+    if (!temVendas && !s.produtos.length) {
+      return '<div class="screen-head"><div><h1>Painel</h1><div class="muted small">' + esc(s.configuracoes.nomeLoja) + '</div></div></div>' +
+        '<div class="card">' + UI.vazio('Bem-vinda à Maison de Lavande', 'Comece cadastrando seus produtos. Depois registre compras e vendas para ver os números aqui.') +
+        '<div class="row" style="justify-content:center"><button class="btn btn-primary" data-act="produtos.novo">Cadastrar primeiro produto</button></div></div>';
+    }
+
+    return '' +
+      '<div class="screen-head">' +
+        '<div><h1>Painel</h1><div class="muted small">Resumo do mês</div></div>' +
+      '</div>' +
+      root.Views.mesNav() +
+      '<div class="kpis mt">' +
+        kpi('Faturamento', dinheiro(atual.faturamento), 'vs. mês anterior ' + variacao(cmpMes.variacao.faturamento)) +
+        kpi('Lucro', dinheiro(atual.lucro), 'vs. mês anterior ' + variacao(cmpMes.variacao.lucro), 'up') +
+        kpi('Margem', UI.percentual(atual.margem), 'lucro sobre a venda') +
+        kpi('Ticket médio', dinheiro(atual.ticketMedio), atual.pedidos + ' pedido(s) · ' + quantidade(atual.unidades) + ' un') +
+      '</div>' +
+
+      '<div class="card">' +
+        '<div class="card-title"><h3>Últimos 12 meses</h3></div>' +
+        (temVendas
+          ? graficoMensal(serie) +
+            '<div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Faturamento</span><span><span class="dot" style="background:#C9B8F0"></span>Lucro</span></div>'
+          : UI.vazio('Sem vendas registradas', 'O gráfico aparece assim que houver vendas.')) +
+      '</div>' +
+
+      '<div class="card">' +
+        '<div class="card-title"><h3>Mais vendidos em ' + Calc.nomeMes(mes) + '</h3><span class="muted small">por unidades</span></div>' +
+        (top.length
+          ? barrasHorizontais(top, (t) => t.unidades, (t) => quantidade(t.unidades) + ' un · ' + dinheiro(t.faturamento), (t) => t.nome)
+          : '<div class="muted small">Nenhuma venda neste mês.</div>') +
+      '</div>' +
+
+      (reposicao.length
+        ? '<div class="card"><div class="card-title"><h3>Para repor</h3><button class="btn btn-ghost" data-act="app.ir" data-tela="estoque">Ver estoque</button></div>' +
+          '<div class="list">' + reposicao.map((a) =>
+            '<div class="item"><div class="item-main"><div class="item-title">' + esc(a.nome) + '</div>' +
+            '<div class="item-meta">' + (a.estoque <= 0 ? 'sem estoque' : quantidade(a.estoque) + ' un restantes') + ' · sugestão: ' + a.sugestaoCompra + ' un</div></div>' +
+            '<button class="btn btn-sm btn-primary" data-act="compras.repor" data-produto="' + esc(a.produtoId) + '" data-qtd="' + a.sugestaoCompra + '">Repor</button></div>'
+          ).join('') + '</div></div>'
+        : '') +
+
+      '<div class="card">' +
+        '<div class="card-title"><h3>Formas de pagamento</h3></div>' +
+        (pagamentos.length
+          ? barrasHorizontais(pagamentos, (p) => p.valor, (p) => UI.percentual(p.percentual) + ' · ' + dinheiro(p.valor), (p) => p.forma)
+          : '<div class="muted small">Sem vendas neste mês.</div>') +
+      '</div>' +
+
+      '<div class="card" id="bloco-comparacao">' + cardComparacao() + '</div>' +
+      '<div class="footer-note">Lucro = valor de venda − custo registrado em cada venda.</div>';
+  }
+
+  // Ligações do painel depois de cada desenho (troca de períodos sem recarregar a tela).
+  function depois(main) {
+    const trocar = () => {
+      UI.state.cmpA = main.querySelector('#cmp-a').value;
+      UI.state.cmpB = main.querySelector('#cmp-b').value;
+      main.querySelector('#bloco-comparacao').innerHTML = cardComparacao();
+      depois(main);
+    };
+    const a = main.querySelector('#cmp-a');
+    const b = main.querySelector('#cmp-b');
+    if (a && b) {
+      a.addEventListener('change', trocar);
+      b.addEventListener('change', trocar);
+    }
+  }
+
+  root.Views = root.Views || {};
+  root.Views.painel = { render, depois, acao() {} };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Tela Vendas: lista do mês, indicadores e formulário com cálculo ao vivo.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc, dinheiro, quantidade, ler } = UI;
+
+  function vendasDoMes(mes) {
+    return Store.get().vendas
+      .filter((v) => Calc.mesDe(v.data) === mes)
+      .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  }
+
+  function itemVenda(v) {
+    return '<div class="item">' +
+      '<div class="item-main" role="button" tabindex="0" data-act="vendas.editar" data-id="' + esc(v.id) + '">' +
+        '<div class="item-title">' + esc(v.nomeProduto) + ' · ' + quantidade(v.quantidade) + ' un</div>' +
+        '<div class="item-meta">' + UI.dataBR(v.data) + ' · ' + esc(v.formaPagamento) + '</div>' +
+      '</div>' +
+      '<div class="item-right">' +
+        '<div class="money">' + dinheiro(v.valorTotal) + '</div>' +
+        '<div class="small up">lucro ' + dinheiro(v.lucro) + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    const s = Store.get();
+    const mes = UI.state.mes;
+    const r = Calc.resumoMes(s.vendas, mes);
+    const lista = vendasDoMes(mes).map(Calc.calcVenda);
+
+    return '' +
+      '<div class="screen-head">' +
+        '<div><h1>Vendas</h1><div class="muted small">Registre cada venda. O lucro é calculado automaticamente.</div></div>' +
+        '<button class="btn btn-primary" data-act="vendas.nova">+ Nova venda</button>' +
+      '</div>' +
+      root.Views.mesNav() +
+      '<div class="kpis mt">' +
+        '<div class="kpi"><div class="kpi-label">Faturamento</div><div class="kpi-value">' + dinheiro(r.faturamento) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">Lucro</div><div class="kpi-value up">' + dinheiro(r.lucro) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">Pedidos</div><div class="kpi-value">' + r.pedidos + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">Unidades</div><div class="kpi-value">' + quantidade(r.unidades) + '</div></div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-title"><h3>Vendas de ' + Calc.nomeMes(mes) + '</h3>' +
+        '<span class="muted small">' + lista.length + ' registro(s)</span></div>' +
+        (lista.length
+          ? '<div class="list">' + lista.map(itemVenda).join('') + '</div>'
+          : UI.vazio('Nenhuma venda neste mês', 'Toque em “Nova venda” para registrar a primeira.')) +
+      '</div>';
+  }
+
+  // ----- formulário -----
+  function formVenda(venda, produtos) {
+    const v = venda || {};
+    const hoje = v.data || Calc.hojeISO();
+    const preco = v.precoUnitario !== undefined ? String(v.precoUnitario).replace('.', ',') : '';
+    const custo = v.custoUnitario !== undefined ? String(v.custoUnitario).replace('.', ',') : '';
+    return '' +
+      '<div class="form-grid">' +
+        '<div class="field"><label for="v-data">Data</label><input id="v-data" type="date" value="' + esc(hoje) + '"></div>' +
+        '<div class="field"><label for="v-qtd">Quantidade</label><input id="v-qtd" inputmode="numeric" value="' + esc(v.quantidade || 1) + '"></div>' +
+        '<div class="field full"><label for="v-produto">Produto</label><select id="v-produto">' + UI.opcoesProdutos(produtos, v.produtoId) + '</select></div>' +
+        '<div class="field"><label for="v-preco">Valor de venda (un.)</label><input id="v-preco" inputmode="decimal" value="' + esc(preco) + '" placeholder="0,00"></div>' +
+        '<div class="field"><label for="v-custo">Custo (un.)</label><input id="v-custo" inputmode="decimal" value="' + esc(custo) + '" placeholder="0,00"></div>' +
+        '<div class="field full"><label for="v-forma">Forma de pagamento</label><select id="v-forma">' + UI.opcoesPagamento(v.formaPagamento, Calc.FORMAS_PAGAMENTO) + '</select></div>' +
+        '<div class="field full"><label for="v-obs">Observação (opcional)</label><textarea id="v-obs" maxlength="200">' + esc(v.observacao || '') + '</textarea></div>' +
+        '<div class="calc-box" id="v-calc"></div>' +
+      '</div>' +
+      '<div class="form-actions">' +
+        '<button class="btn" data-fechar>Cancelar</button>' +
+        '<button class="btn btn-primary" data-act="vendas.salvar" data-id="' + esc(v.id || '') + '">Salvar venda</button>' +
+      '</div>' +
+      (v.id ? '<div class="form-actions"><button class="btn btn-danger btn-block" data-act="vendas.excluir" data-id="' + esc(v.id) + '">Excluir esta venda</button></div>' : '');
+  }
+
+  function lerForm(sheet) {
+    const q = (sel) => sheet.querySelector(sel).value;
+    const produto = Store.get().produtos.find((p) => p.id === q('#v-produto'));
+    const qtd = ler(q('#v-qtd'));
+    return {
+      data: q('#v-data'),
+      produtoId: q('#v-produto'),
+      nomeProduto: produto ? produto.nome : '',
+      quantidade: Number.isNaN(qtd) ? NaN : qtd,
+      precoUnitario: ler(q('#v-preco')),
+      custoUnitario: ler(q('#v-custo')),
+      formaPagamento: q('#v-forma'),
+      observacao: q('#v-obs').trim(),
+    };
+  }
+
+  // Quanto ainda há disponível; ao editar, a própria venda volta a contar.
+  function disponivel(produtoId, idEditando) {
+    const s = Store.get();
+    const saldo = Calc.saldosPorProduto(s)[produtoId];
+    if (saldo === undefined) return 0;
+    if (idEditando) {
+      const original = s.vendas.find((x) => x.id === idEditando);
+      if (original && original.produtoId === produtoId) return saldo + Number(original.quantidade);
+    }
+    return saldo;
+  }
+
+  function atualizarCalc(sheet, idEditando) {
+    const box = sheet.querySelector('#v-calc');
+    const v = lerForm(sheet);
+    const ok = Number(v.quantidade) > 0 && v.precoUnitario >= 0 && v.custoUnitario >= 0;
+    if (!ok || !v.produtoId) {
+      box.innerHTML = '<div class="full muted small">Preencha produto, quantidade e valores para ver o total e o lucro.</div>';
+      return;
+    }
+    const c = Calc.calcVenda(v);
+    const { avisos } = Calc.validarVenda(v, disponivel(v.produtoId, idEditando));
+    box.innerHTML =
+      '<div>Total da venda<div class="v">' + dinheiro(c.valorTotal) + '</div></div>' +
+      '<div>Custo total<div class="v">' + dinheiro(c.custoTotal) + '</div></div>' +
+      '<div>Lucro<div class="v up">' + dinheiro(c.lucro) + '</div></div>' +
+      '<div>Margem<div class="v">' + UI.percentual(c.margem) + '</div></div>' +
+      (avisos.length ? '<div class="warn-line">' + esc(avisos[0]) + '</div>' : '');
+  }
+
+  function abrirForm(venda) {
+    const produtos = Store.get().produtos;
+    const idEditando = venda ? venda.id : null;
+    UI.abrirFolha(venda ? 'Editar venda' : 'Nova venda', formVenda(venda, produtos), (sheet) => {
+      const prod = sheet.querySelector('#v-produto');
+      prod.addEventListener('change', () => {
+        const p = Store.get().produtos.find((x) => x.id === prod.value);
+        if (p) {
+          sheet.querySelector('#v-preco').value = String(p.precoVenda || 0).replace('.', ',');
+          sheet.querySelector('#v-custo').value = String(p.custoAtual || 0).replace('.', ',');
+        }
+        atualizarCalc(sheet, idEditando);
+      });
+      sheet.querySelectorAll('input, select, textarea').forEach((el) => el.addEventListener('input', () => atualizarCalc(sheet, idEditando)));
+      sheet.querySelectorAll('select').forEach((el) => el.addEventListener('change', () => atualizarCalc(sheet, idEditando)));
+      atualizarCalc(sheet, idEditando);
+    });
+  }
+
+  function salvar(id, sheet) {
+    const v = lerForm(sheet);
+    const { erros, avisos } = Calc.validarVenda(v, disponivel(v.produtoId, id));
+    const erroBox = sheet.querySelector('#v-calc');
+    if (erros.length) {
+      erroBox.innerHTML = erros.map((e) => '<div class="err-line">' + esc(e) + '</div>').join('');
+      return;
+    }
+    const dados = Object.assign({}, v, { quantidade: Number(v.quantidade) });
+    if (id) Store.updateVenda(id, dados);
+    else Store.addVenda(dados);
+    UI.fecharFolha();
+    UI.toast(avisos.length ? 'Venda salva. ' + avisos[0] : 'Venda salva');
+    root.App.rerender();
+  }
+
+  const Vendas = {
+    render,
+    acao(nome, el) {
+      const id = el && el.dataset.id;
+      if (nome === 'nova') return abrirForm(null);
+      if (nome === 'editar') {
+        const v = Store.get().vendas.find((x) => x.id === id);
+        if (v) abrirForm(v);
+        return;
+      }
+      if (nome === 'salvar') {
+        const sheet = el.closest('.sheet');
+        return salvar(id || null, sheet);
+      }
+      if (nome === 'excluir') {
+        if (!window.confirm('Excluir esta venda? O estoque e os totais serão recalculados.')) return;
+        Store.removerVenda(id);
+        UI.fecharFolha();
+        UI.toast('Venda excluída');
+        root.App.rerender();
+      }
+    },
+  };
+
+  root.Views = root.Views || {};
+  root.Views.vendas = Vendas;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Tela Compras: registra compras para reposição e calcula o preço final de venda
+ * a partir do custo e do percentual de acréscimo.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc, dinheiro, quantidade, ler } = UI;
+
+  function comprasDoMes(mes) {
+    return Store.get().compras
+      .filter((c) => Calc.mesDe(c.data) === mes)
+      .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0))
+      .map(Calc.calcCompra);
+  }
+
+  function itemCompra(c) {
+    return '<div class="item">' +
+      '<div class="item-main">' +
+        '<div class="item-title">' + esc(c.nomeProduto) + ' · ' + quantidade(c.quantidade) + ' un</div>' +
+        '<div class="item-meta">' + UI.dataBR(c.data) + (c.fornecedor ? ' · ' + esc(c.fornecedor) : '') +
+        ' · acréscimo ' + UI.percentual(c.acrescimo) + ' → venda ' + dinheiro(c.precoVendaSugerido) + '</div>' +
+      '</div>' +
+      '<div class="item-right">' +
+        '<div class="money">' + dinheiro(c.custoTotal) + '</div>' +
+        '<button class="item-btn" data-act="compras.excluir" data-id="' + esc(c.id) + '">Excluir</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    const mes = UI.state.mes;
+    const lista = comprasDoMes(mes);
+    const investido = lista.reduce((s, c) => s + c.custoTotal, 0);
+    const unidades = lista.reduce((s, c) => s + Number(c.quantidade), 0);
+
+    return '' +
+      '<div class="screen-head">' +
+        '<div><h1>Compras</h1><div class="muted small">Registre o que comprou. O preço de venda sai do custo + acréscimo.</div></div>' +
+        '<button class="btn btn-primary" data-act="compras.nova">+ Nova compra</button>' +
+      '</div>' +
+      root.Views.mesNav() +
+      '<div class="kpis mt">' +
+        '<div class="kpi"><div class="kpi-label">Investido</div><div class="kpi-value">' + dinheiro(investido) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">Unidades</div><div class="kpi-value">' + quantidade(unidades) + '</div></div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-title"><h3>Compras de ' + Calc.nomeMes(mes) + '</h3><span class="muted small">' + lista.length + ' registro(s)</span></div>' +
+        (lista.length
+          ? '<div class="list">' + lista.map(itemCompra).join('') + '</div>'
+          : UI.vazio('Nenhuma compra neste mês', 'Registre compras para atualizar o estoque e os preços.')) +
+      '</div>';
+  }
+
+  function formCompra(compra, produtos) {
+    const c = compra || {};
+    const hoje = c.data || Calc.hojeISO();
+    const cu = c.custoUnitario !== undefined ? String(c.custoUnitario).replace('.', ',') : '';
+    const ac = c.acrescimo !== undefined ? String(c.acrescimo).replace('.', ',') : '';
+    return '' +
+      '<div class="form-grid">' +
+        '<div class="field"><label for="c-data">Data</label><input id="c-data" type="date" value="' + esc(hoje) + '"></div>' +
+        '<div class="field"><label for="c-qtd">Quantidade</label><input id="c-qtd" inputmode="numeric" value="' + esc(c.quantidade || '') + '"></div>' +
+        '<div class="field full"><label for="c-produto">Produto</label><select id="c-produto">' + UI.opcoesProdutos(produtos, c.produtoId) + '</select></div>' +
+        '<div class="field"><label for="c-custo">Custo unitário</label><input id="c-custo" inputmode="decimal" value="' + esc(cu) + '" placeholder="0,00"></div>' +
+        '<div class="field"><label for="c-acres">Acréscimo (%)</label><input id="c-acres" inputmode="decimal" value="' + esc(ac) + '" placeholder="100"></div>' +
+        '<div class="field full"><label for="c-forn">Fornecedor (opcional)</label><input id="c-forn" value="' + esc(c.fornecedor || '') + '"></div>' +
+        '<div class="field full"><label class="row small" style="font-weight:600;color:var(--ink)"><input type="checkbox" id="c-atualizar" checked> Usar este custo e acréscimo como padrão do produto</label></div>' +
+        '<div class="calc-box" id="c-calc"></div>' +
+      '</div>' +
+      '<div class="form-actions"><button class="btn" data-fechar>Cancelar</button>' +
+      '<button class="btn btn-primary" data-act="compras.salvar">Salvar compra</button></div>';
+  }
+
+  function lerForm(sheet) {
+    const q = (sel) => sheet.querySelector(sel).value;
+    const produto = Store.get().produtos.find((p) => p.id === q('#c-produto'));
+    const qtd = ler(q('#c-qtd'));
+    return {
+      data: q('#c-data'),
+      produtoId: q('#c-produto'),
+      nomeProduto: produto ? produto.nome : '',
+      quantidade: Number.isNaN(qtd) ? NaN : qtd,
+      custoUnitario: ler(q('#c-custo')),
+      acrescimo: ler(q('#c-acres')),
+      fornecedor: q('#c-forn').trim(),
+      atualizarProduto: sheet.querySelector('#c-atualizar').checked,
+    };
+  }
+
+  function atualizarCalc(sheet) {
+    const box = sheet.querySelector('#c-calc');
+    const v = lerForm(sheet);
+    if (!(v.custoUnitario >= 0) || !(v.acrescimo >= 0) || !v.produtoId || !(v.quantidade > 0)) {
+      box.innerHTML = '<div class="full muted small">Informe produto, quantidade, custo e acréscimo para ver o preço final.</div>';
+      return;
+    }
+    const c = Calc.calcCompra(v);
+    const lucroUn = Calc.round2(c.precoVendaSugerido - v.custoUnitario);
+    const margem = c.precoVendaSugerido > 0 ? Calc.round2((lucroUn / c.precoVendaSugerido) * 100) : 0;
+    box.innerHTML =
+      '<div>Custo total da compra<div class="v">' + dinheiro(c.custoTotal) + '</div></div>' +
+      '<div>Preço final de venda<div class="v up">' + dinheiro(c.precoVendaSugerido) + '</div></div>' +
+      '<div>Lucro por unidade<div class="v">' + dinheiro(lucroUn) + '</div></div>' +
+      '<div>Margem<div class="v">' + UI.percentual(margem) + '</div></div>';
+  }
+
+  function abrirForm(opcoes) {
+    const o = opcoes || {};
+    const produtos = Store.get().produtos;
+    const base = o.produtoId ? produtos.find((p) => p.id === o.produtoId) : null;
+    const inicial = base
+      ? { produtoId: base.id, custoUnitario: base.custoAtual || 0, acrescimo: base.acrescimo || 0, quantidade: o.quantidade || '' }
+      : (o.compra || null);
+    UI.abrirFolha('Nova compra', formCompra(inicial, produtos), (sheet) => {
+      const prod = sheet.querySelector('#c-produto');
+      prod.addEventListener('change', () => {
+        const p = Store.get().produtos.find((x) => x.id === prod.value);
+        if (p) {
+          sheet.querySelector('#c-custo').value = String(p.custoAtual || 0).replace('.', ',');
+          sheet.querySelector('#c-acres').value = String(p.acrescimo || 0).replace('.', ',');
+        }
+        atualizarCalc(sheet);
+      });
+      sheet.querySelectorAll('input, select').forEach((el) => {
+        el.addEventListener('input', () => atualizarCalc(sheet));
+        el.addEventListener('change', () => atualizarCalc(sheet));
+      });
+      atualizarCalc(sheet);
+    });
+  }
+
+  function salvar(sheet) {
+    const v = lerForm(sheet);
+    const erros = Calc.validarCompra(v);
+    if (erros.length) {
+      sheet.querySelector('#c-calc').innerHTML = erros.map((e) => '<div class="err-line">' + esc(e) + '</div>').join('');
+      return;
+    }
+    const precoVenda = Calc.precoFinal(v.custoUnitario, v.acrescimo);
+    const compra = {
+      data: v.data,
+      produtoId: v.produtoId,
+      nomeProduto: v.nomeProduto,
+      quantidade: Number(v.quantidade),
+      custoUnitario: v.custoUnitario,
+      acrescimo: v.acrescimo,
+      precoVenda,
+      fornecedor: v.fornecedor,
+    };
+    Store.addCompra(compra);
+    if (v.atualizarProduto) {
+      Store.updateProduto(v.produtoId, {
+        custoAtual: v.custoUnitario,
+        acrescimo: v.acrescimo,
+        precoVenda,
+      });
+    }
+    UI.fecharFolha();
+    UI.toast('Compra salva · estoque atualizado');
+    root.App.rerender();
+  }
+
+  const Compras = {
+    render,
+    abrirForm,
+    acao(nome, el) {
+      if (nome === 'nova') return abrirForm({});
+      if (nome === 'repor') {
+        return abrirForm({ produtoId: el.dataset.produto, quantidade: Number(el.dataset.qtd) || '' });
+      }
+      if (nome === 'salvar') return salvar(el.closest('.sheet'));
+      if (nome === 'excluir') {
+        if (!window.confirm('Excluir esta compra? O estoque será recalculado.')) return;
+        Store.removerCompra(el.dataset.id);
+        UI.toast('Compra excluída');
+        root.App.rerender();
+      }
+    },
+  };
+
+  root.Views = root.Views || {};
+  root.Views.compras = Compras;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Tela Estoque: saldo atual, cobertura em dias, o que repor e ajustes manuais.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc, dinheiro, quantidade, ler } = UI;
+
+  const ROTULO = {
+    esgotado: 'Esgotado',
+    repor: 'Repor',
+    atencao: 'Atenção',
+    ok: 'OK',
+    parado: 'Sem giro',
+  };
+
+  const MOTIVOS = ['Contagem', 'Perda ou avaria', 'Brinde ou amostra', 'Entrada sem compra', 'Outro'];
+
+  function linhaProduto(a, produto) {
+    const cobertura = a.coberturaDias === null ? 'sem vendas recentes' : a.coberturaDias + ' dias de cobertura';
+    const acao = (a.status === 'repor' || a.status === 'esgotado') && a.sugestaoCompra > 0
+      ? '<button class="btn btn-sm btn-primary" data-act="compras.repor" data-produto="' + esc(a.produtoId) + '" data-qtd="' + a.sugestaoCompra + '">Repor ' + a.sugestaoCompra + '</button>'
+      : '';
+    return '<div class="item">' +
+      '<div class="item-main">' +
+        '<div class="item-title">' + esc(a.nome) + '</div>' +
+        '<div class="item-meta">Em estoque: <strong>' + quantidade(a.estoque) + '</strong> un · ' +
+        'vendeu ' + quantidade(a.vendas60) + ' em 60 dias · ' + cobertura + '</div>' +
+      '</div>' +
+      '<div class="item-right">' +
+        '<span class="badge b-' + a.status + '">' + ROTULO[a.status] + '</span>' +
+        '<div class="row" style="justify-content:flex-end;margin-top:6px">' +
+          acao +
+          '<button class="item-btn" data-act="estoque.ajuste" data-produto="' + esc(a.produtoId) + '">Ajustar</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    const s = Store.get();
+    const analise = Calc.analiseReposicao(s, Calc.hojeISO());
+    const ativos = s.produtos.filter((p) => p.ativo !== false);
+
+    if (!ativos.length) {
+      return '<div class="screen-head"><div><h1>Estoque</h1></div></div>' +
+        UI.vazio('Nenhum produto cadastrado', 'Cadastre seus produtos na aba Produtos para acompanhar o estoque.');
+    }
+
+    const saldos = Calc.saldosPorProduto(s);
+    const valorEstoque = ativos.reduce((acc, p) => acc + Math.max(0, saldos[p.id] || 0) * Number(p.custoAtual || 0), 0);
+    const contagem = (st) => analise.filter((a) => a.status === st).length;
+    const precisamRepor = analise.filter((a) => a.status === 'repor' || a.status === 'esgotado');
+    const atencao = analise.filter((a) => a.status === 'atencao');
+    const restante = analise.filter((a) => a.status === 'ok' || a.status === 'parado');
+
+    const grupo = (titulo, lista, vazioTexto) => '<div class="card">' +
+      '<div class="card-title"><h3>' + titulo + '</h3><span class="muted small">' + lista.length + '</span></div>' +
+      (lista.length ? '<div class="list">' + lista.map((a) => linhaProduto(a, ativos.find((p) => p.id === a.produtoId))).join('') + '</div>'
+        : '<div class="muted small">' + vazioTexto + '</div>') +
+      '</div>';
+
+    return '' +
+      '<div class="screen-head">' +
+        '<div><h1>Estoque</h1><div class="muted small">Calculado a partir de compras, vendas e ajustes. Giro dos últimos 60 dias.</div></div>' +
+      '</div>' +
+      '<div class="kpis">' +
+        '<div class="kpi"><div class="kpi-label">Repor agora</div><div class="kpi-value down">' + (contagem('repor') + contagem('esgotado')) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">Atenção</div><div class="kpi-value">' + contagem('atencao') + '</div></div>' +
+        '<div class="kpi wide"><div class="kpi-label">Valor parado em estoque (custo)</div><div class="kpi-value">' + dinheiro(valorEstoque) + '</div></div>' +
+      '</div>' +
+      grupo('Precisam de reposição', precisamRepor, 'Nada urgente. Bom sinal.') +
+      grupo('Atenção nas próximas semanas', atencao, 'Nenhum produto nesse ponto.') +
+      grupo('Estoque confortável ou sem giro', restante, 'Nenhum produto nesta faixa.') +
+      '<div class="footer-note">Sugestão de reposição = venda média diária × 30 dias + estoque mínimo − saldo atual.</div>';
+  }
+
+  function formAjuste(produtoId) {
+    const produtos = Store.get().produtos;
+    return '' +
+      '<div class="form-grid">' +
+        '<div class="field"><label for="a-data">Data</label><input id="a-data" type="date" value="' + Calc.hojeISO() + '"></div>' +
+        '<div class="field"><label for="a-qtd">Quantidade (use − para saída)</label><input id="a-qtd" inputmode="numeric" placeholder="ex.: -2 ou 5"></div>' +
+        '<div class="field full"><label for="a-produto">Produto</label><select id="a-produto">' + UI.opcoesProdutos(produtos, produtoId) + '</select></div>' +
+        '<div class="field full"><label for="a-motivo">Motivo</label><select id="a-motivo">' + MOTIVOS.map((m) => '<option>' + esc(m) + '</option>').join('') + '</select></div>' +
+        '<div class="calc-box" id="a-calc"><div class="full muted small">Use para registrar contagem de prateleira, perdas ou brindes.</div></div>' +
+      '</div>' +
+      '<div class="form-actions"><button class="btn" data-fechar>Cancelar</button>' +
+      '<button class="btn btn-primary" data-act="estoque.salvarAjuste">Salvar ajuste</button></div>';
+  }
+
+  function abrirAjuste(produtoId) {
+    UI.abrirFolha('Ajustar estoque', formAjuste(produtoId), null);
+  }
+
+  function salvarAjuste(sheet) {
+    const q = (sel) => sheet.querySelector(sel).value;
+    const qtd = ler(q('#a-qtd'));
+    const produto = Store.get().produtos.find((p) => p.id === q('#a-produto'));
+    const box = sheet.querySelector('#a-calc');
+    if (!produto) { box.innerHTML = '<div class="err-line">Escolha um produto.</div>'; return; }
+    if (!Number.isInteger(qtd) || qtd === 0) { box.innerHTML = '<div class="err-line">Informe um número inteiro diferente de zero.</div>'; return; }
+    Store.addAjuste({ data: q('#a-data'), produtoId: produto.id, nomeProduto: produto.nome, quantidade: qtd, motivo: q('#a-motivo') });
+    UI.fecharFolha();
+    UI.toast('Ajuste registrado');
+    root.App.rerender();
+  }
+
+  root.Views = root.Views || {};
+  root.Views.estoque = {
+    render,
+    acao(nome, el) {
+      if (nome === 'ajuste') return abrirAjuste(el.dataset.produto);
+      if (nome === 'salvarAjuste') return salvarAjuste(el.closest('.sheet'));
+    },
+  };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Tela Produtos: cadastro fixo. Informações ficam aqui e não precisam ser digitadas de novo.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc, dinheiro, quantidade, ler } = UI;
+
+  const UNIDADES = ['un', 'kit', 'par', 'caixa', 'ml', 'g'];
+
+  function render() {
+    const s = Store.get();
+    const ativos = s.produtos.filter((p) => p.ativo !== false).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    const saldos = Calc.saldosPorProduto(s);
+
+    const itens = ativos.map((p) => '' +
+      '<div class="item" data-busca="' + esc((p.nome + ' ' + (p.codigo || '') + ' ' + (p.categoria || '')).toLowerCase()) + '">' +
+        '<div class="item-main" role="button" tabindex="0" data-act="produtos.editar" data-id="' + esc(p.id) + '">' +
+          '<div class="item-title">' + esc(p.nome) + '</div>' +
+          '<div class="item-meta">' + (p.categoria ? esc(p.categoria) + ' · ' : '') +
+          (p.codigo ? 'cód. ' + esc(p.codigo) + ' · ' : '') + 'custo ' + dinheiro(p.custoAtual) +
+          ' · acréscimo ' + UI.percentual(p.acrescimo) + '</div>' +
+        '</div>' +
+        '<div class="item-right">' +
+          '<div class="money">' + dinheiro(p.precoVenda) + '</div>' +
+          '<div class="small muted">' + quantidade(saldos[p.id] || 0) + ' un em estoque</div>' +
+        '</div>' +
+      '</div>').join('');
+
+    return '' +
+      '<div class="screen-head">' +
+        '<div><h1>Produtos</h1><div class="muted small">Cadastro fixo. Custo, acréscimo e preço ficam salvos aqui.</div></div>' +
+        '<button class="btn btn-primary" data-act="produtos.novo">+ Novo produto</button>' +
+      '</div>' +
+      (ativos.length
+        ? '<div class="field" style="margin-bottom:12px"><input id="busca-produtos" type="search" placeholder="Buscar por nome, código ou categoria" style="width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);outline:none"></div>' +
+          '<div class="card"><div class="list" id="lista-produtos">' + itens + '</div>' +
+          '<div class="empty" id="sem-resultado" hidden>Nenhum produto encontrado.</div></div>'
+        : UI.vazio('Nenhum produto ainda', 'Cadastre o primeiro produto. Depois ele aparece nas vendas e compras.'));
+  }
+
+  // Filtra a lista sem redesenhar a tela (chamado depois de cada render).
+  function depois(main) {
+    const busca = main.querySelector('#busca-produtos');
+    if (!busca) return;
+    busca.addEventListener('input', () => {
+      const termo = busca.value.trim().toLowerCase();
+      let achou = 0;
+      main.querySelectorAll('#lista-produtos .item').forEach((el) => {
+        const ok = !termo || el.dataset.busca.includes(termo);
+        el.hidden = !ok;
+        if (ok) achou++;
+      });
+      main.querySelector('#sem-resultado').hidden = achou > 0;
+    });
+  }
+
+  function formProduto(p) {
+    const v = p || {};
+    const campo = (x) => (x === undefined || x === null ? '' : String(x).replace('.', ','));
+    return '' +
+      '<div class="form-grid">' +
+        '<div class="field full"><label for="p-nome">Nome do produto</label><input id="p-nome" value="' + esc(v.nome || '') + '" placeholder="ex.: Sabonete de lavanda 90g"></div>' +
+        '<div class="field"><label for="p-codigo">Código (opcional)</label><input id="p-codigo" value="' + esc(v.codigo || '') + '"></div>' +
+        '<div class="field"><label for="p-cat">Categoria</label><input id="p-cat" value="' + esc(v.categoria || '') + '" placeholder="ex.: Banho"></div>' +
+        '<div class="field"><label for="p-un">Unidade</label><select id="p-un">' + UNIDADES.map((u) => '<option' + ((v.unidade || 'un') === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select></div>' +
+        '<div class="field"><label for="p-custo">Custo unitário</label><input id="p-custo" inputmode="decimal" value="' + campo(v.custoAtual) + '" placeholder="0,00"></div>' +
+        '<div class="field"><label for="p-acres">Acréscimo padrão (%)</label><input id="p-acres" inputmode="decimal" value="' + (v.id ? campo(v.acrescimo) : '100') + '"></div>' +
+        '<div class="field"><label for="p-preco">Preço de venda</label><input id="p-preco" inputmode="decimal" value="' + campo(v.precoVenda) + '" placeholder="0,00"></div>' +
+        '<div class="field"><label for="p-est">Estoque inicial</label><input id="p-est" inputmode="numeric" value="' + (v.estoqueInicial !== undefined ? v.estoqueInicial : 0) + '"></div>' +
+        '<div class="field"><label for="p-min">Estoque mínimo (alerta)</label><input id="p-min" inputmode="numeric" value="' + (v.estoqueMinimo !== undefined ? v.estoqueMinimo : 0) + '"></div>' +
+        '<div class="calc-box" id="p-calc"></div>' +
+      '</div>' +
+      '<div class="form-actions"><button class="btn" data-fechar>Cancelar</button>' +
+      '<button class="btn btn-primary" data-act="produtos.salvar" data-id="' + esc(v.id || '') + '">Salvar produto</button></div>' +
+      (v.id ? '<div class="form-actions"><button class="btn btn-danger btn-block" data-act="produtos.desativar" data-id="' + esc(v.id) + '">Desativar produto</button></div>' : '');
+  }
+
+  function lerForm(sheet) {
+    const q = (sel) => sheet.querySelector(sel).value;
+    return {
+      nome: q('#p-nome').trim(),
+      codigo: q('#p-codigo').trim(),
+      categoria: q('#p-cat').trim(),
+      unidade: q('#p-un'),
+      custoAtual: ler(q('#p-custo')),
+      acrescimo: ler(q('#p-acres')),
+      precoVenda: ler(q('#p-preco')),
+      estoqueInicial: Number(ler(q('#p-est')) || 0),
+      estoqueMinimo: Number(ler(q('#p-min')) || 0),
+    };
+  }
+
+  function atualizarCalc(sheet) {
+    const v = lerForm(sheet);
+    const box = sheet.querySelector('#p-calc');
+    if (!(v.custoAtual >= 0) || !(v.acrescimo >= 0)) {
+      box.innerHTML = '<div class="full muted small">Informe custo e acréscimo para ver o preço sugerido.</div>';
+      return;
+    }
+    const sugerido = Calc.precoFinal(v.custoAtual, v.acrescimo);
+    box.innerHTML =
+      '<div class="full">Preço sugerido (custo + ' + UI.percentual(v.acrescimo) + ')<div class="v up">' + dinheiro(sugerido) + '</div></div>' +
+      '<div class="full"><button class="btn btn-sm" type="button" data-act="produtos.usarSugerido">Usar este preço de venda</button></div>';
+  }
+
+  function abrirForm(p) {
+    UI.abrirFolha(p ? 'Editar produto' : 'Novo produto', formProduto(p), (sheet) => {
+      sheet.querySelectorAll('input, select').forEach((el) => {
+        el.addEventListener('input', () => atualizarCalc(sheet));
+        el.addEventListener('change', () => atualizarCalc(sheet));
+      });
+      atualizarCalc(sheet);
+    });
+  }
+
+  function salvar(id, sheet) {
+    const v = lerForm(sheet);
+    const erros = [];
+    if (!v.nome) erros.push('Informe o nome do produto.');
+    if (!(v.custoAtual >= 0)) erros.push('Informe o custo unitário.');
+    if (!(v.acrescimo >= 0)) erros.push('Informe o acréscimo (0 ou mais).');
+    if (!(v.precoVenda >= 0)) erros.push('Informe o preço de venda.');
+    if (erros.length) {
+      sheet.querySelector('#p-calc').innerHTML = erros.map((e) => '<div class="err-line">' + esc(e) + '</div>').join('');
+      return;
+    }
+    if (id) Store.updateProduto(id, v);
+    else Store.addProduto(Object.assign({ ativo: true }, v));
+    UI.fecharFolha();
+    UI.toast('Produto salvo');
+    root.App.rerender();
+  }
+
+  root.Views = root.Views || {};
+  root.Views.produtos = {
+    render,
+    depois,
+    acao(nome, el) {
+      const id = el && el.dataset.id;
+      if (nome === 'novo') return abrirForm(null);
+      if (nome === 'editar') {
+        const p = Store.get().produtos.find((x) => x.id === id);
+        if (p) abrirForm(p);
+        return;
+      }
+      if (nome === 'salvar') return salvar(id || null, el.closest('.sheet'));
+      if (nome === 'usarSugerido') {
+        const sheet = el.closest('.sheet');
+        const v = lerForm(sheet);
+        sheet.querySelector('#p-preco').value = String(Calc.precoFinal(v.custoAtual, v.acrescimo)).replace('.', ',');
+        return atualizarCalc(sheet);
+      }
+      if (nome === 'desativar') {
+        if (!window.confirm('Desativar este produto? Ele sai das listas, mas o histórico de vendas e compras é mantido.')) return;
+        Store.desativarProduto(id);
+        UI.fecharFolha();
+        UI.toast('Produto desativado');
+        root.App.rerender();
+      }
+    },
+  };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Configurações: nome da loja, backup, exportação para planilha, dados de exemplo e versões.
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+  const { esc } = UI;
+
+  const VERSAO_ATUAL = '1.0';
+
+  const NOVIDADES = [
+    {
+      versao: '1.0',
+      status: 'Versão atual',
+      itens: [
+        'Cadastro fixo de produtos (custo, acréscimo, preço, estoque inicial e mínimo).',
+        'Vendas com data, produto, quantidade, valor, forma de pagamento; total, custo, lucro e margem são calculados sozinhos.',
+        'Compras e reposição: preço final = custo + acréscimo, com opção de atualizar o preço do produto.',
+        'Estoque automático (compras + ajustes − vendas), cobertura em dias e sugestão de quantidade para repor.',
+        'Painel com indicadores do mês, gráfico dos últimos 12 meses, mais vendidos, formas de pagamento e comparação entre dois períodos.',
+        'Backup em arquivo, exportação de vendas para planilha e uso no Chrome e no Android.',
+      ],
+    },
+    {
+      versao: '1.2',
+      status: 'Planejada',
+      itens: [
+        'Editar e excluir compras e ajustes de estoque.',
+        'Filtrar vendas por produto e forma de pagamento.',
+        'Meta mensal de faturamento com barra de progresso no Painel.',
+        'Importar planilhas (CSV) para trazer o histórico antigo de uma vez.',
+        'Avisos de reposição ao abrir o app, sem precisar entrar no Estoque.',
+      ],
+    },
+  ];
+
+  const PRODUTOS_EXEMPLO = [
+    { nome: 'Sabonete de lavanda 90g', codigo: 'SAB-01', categoria: 'Banho', custo: 6.5, acrescimo: 120, minimo: 10 },
+    { nome: 'Óleo essencial de lavanda 10ml', codigo: 'OLE-10', categoria: 'Aromaterapia', custo: 14, acrescimo: 110, minimo: 5 },
+    { nome: 'Vela aromática lavanda', codigo: 'VEL-01', categoria: 'Ambiente', custo: 18, acrescimo: 100, minimo: 6 },
+    { nome: 'Sachê perfumado', codigo: 'SCH-01', categoria: 'Gavetas', custo: 3, acrescimo: 150, minimo: 15 },
+    { nome: 'Difusor de varetas 100ml', codigo: 'DIF-100', categoria: 'Ambiente', custo: 22, acrescimo: 100, minimo: 4 },
+    { nome: 'Spray de ambiente 240ml', codigo: 'SPR-24', categoria: 'Ambiente', custo: 11, acrescimo: 120, minimo: 6 },
+    { nome: 'Sais de banho 500g', codigo: 'SAI-05', categoria: 'Banho', custo: 16, acrescimo: 100, minimo: 4 },
+    { nome: 'Kit presente lavanda', codigo: 'KIT-01', categoria: 'Presentes', custo: 42, acrescimo: 90, minimo: 2 },
+  ];
+
+  function gerarExemplos() {
+    let semente = 20260101;
+    const rnd = () => (semente = (semente * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+    const formas = Calc.FORMAS_PAGAMENTO.slice(0, 4);
+    const hoje = Calc.hojeISO();
+    const mesAtual = Calc.mesDe(hoje);
+    const diaHoje = Number(hoje.slice(8, 10));
+
+    const produtos = PRODUTOS_EXEMPLO.map((p, i) => ({
+      id: 'ex-p' + i, ativo: true, unidade: 'un', nome: p.nome, codigo: p.codigo, categoria: p.categoria,
+      custoAtual: p.custo, acrescimo: p.acrescimo, precoVenda: Calc.precoFinal(p.custo, p.acrescimo),
+      estoqueInicial: 0, estoqueMinimo: p.minimo,
+    }));
+
+    const compras = [];
+    const vendas = [];
+    let n = 0;
+    for (let k = 11; k >= 0; k--) {
+      const ym = Calc.deslocarMes(mesAtual, -k);
+      const limiteDia = ym === mesAtual ? Math.max(1, diaHoje) : 28;
+      produtos.forEach((p, idx) => {
+        // Vendas do mês primeiro; a compra é calculada para acompanhar o que saiu.
+        let vendido = 0;
+        const vendasNoMes = ri(2, 5);
+        for (let v = 0; v < vendasNoMes; v++) {
+          const qtd = ri(1, 4);
+          vendido += qtd;
+          vendas.push({
+            id: 'ex-v' + (++n), data: ym + '-' + String(ri(1, Math.min(28, limiteDia))).padStart(2, '0'),
+            produtoId: p.id, nomeProduto: p.nome, quantidade: qtd,
+            precoUnitario: p.precoVenda, custoUnitario: p.custoAtual,
+            formaPagamento: formas[ri(0, formas.length - 1)], observacao: 'Dado de exemplo',
+          });
+        }
+        // Dois produtos ficam com pouca compra no mês atual, para aparecer o alerta de reposição.
+        const emFalta = ym === mesAtual && (idx === 2 || idx === 7);
+        const qtdComprada = emFalta ? Math.max(0, vendido - 9) : vendido + ri(0, 2);
+        compras.push({
+          id: 'ex-c' + (++n), data: ym + '-' + String(ri(1, 3)).padStart(2, '0'),
+          produtoId: p.id, nomeProduto: p.nome, quantidade: qtdComprada,
+          custoUnitario: p.custoAtual, acrescimo: p.acrescimo, precoVenda: p.precoVenda,
+          fornecedor: 'Fornecedor exemplo',
+        });
+      });
+    }
+    return { produtos, compras, vendas };
+  }
+
+  function baixar(nomeArquivo, conteudo, tipo) {
+    const blob = new Blob([conteudo], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nomeArquivo;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // CSV no formato que o Excel e o Planilhas do Google leem bem no Brasil (; e vírgula decimal).
+  function csvVendas() {
+    const dec = (n) => Number(n || 0).toFixed(2).replace('.', ',');
+    const cab = ['Data', 'Produto', 'Quantidade', 'Valor unitário', 'Valor total', 'Custo unitário', 'Custo total', 'Lucro', 'Forma de pagamento', 'Observação'];
+    const linhas = Store.get().vendas.slice().sort((a, b) => (a.data < b.data ? -1 : 1)).map((v) => {
+      const c = Calc.calcVenda(v);
+      return [UI.dataBR(v.data), v.nomeProduto, v.quantidade, dec(v.precoUnitario), dec(c.valorTotal), dec(v.custoUnitario), dec(c.custoTotal), dec(c.lucro), v.formaPagamento, v.observacao || '']
+        .map((x) => '"' + String(x).replace(/"/g, '""') + '"').join(';');
+    });
+    return '﻿' + [cab.join(';')].concat(linhas).join('\r\n');
+  }
+
+  function render() {
+    const cfg = Store.get().configuracoes;
+    return '' +
+      '<div class="screen-head"><div><h1>Configurações</h1><div class="muted small">Versão ' + VERSAO_ATUAL + '</div></div></div>' +
+
+      '<div class="card"><div class="card-title"><h3>Loja</h3></div>' +
+        '<div class="field"><label for="cfg-nome">Nome exibido no painel</label>' +
+        '<input id="cfg-nome" value="' + esc(cfg.nomeLoja) + '" data-act-change="config.nome"></div></div>' +
+
+      '<div class="card"><div class="card-title"><h3>Backup e planilhas</h3></div>' +
+        '<p class="muted small" style="margin-top:0">Os dados ficam salvos neste aparelho e navegador. Faça um backup de vez em quando.</p>' +
+        '<div class="list" style="gap:10px">' +
+          '<button class="btn btn-block btn-primary" data-act="config.exportar">Exportar backup (.json)</button>' +
+          '<label class="btn btn-block" style="cursor:pointer">Importar backup<input type="file" accept="application/json,.json" data-act-change="config.importar" hidden></label>' +
+          '<button class="btn btn-block" data-act="config.csv">Exportar vendas para planilha (.csv)</button>' +
+        '</div></div>' +
+
+      '<div class="card"><div class="card-title"><h3>Dados de exemplo</h3></div>' +
+        '<p class="muted small" style="margin-top:0">Quer ver os gráficos funcionando antes de cadastrar os seus produtos? Carregue um histórico de 12 meses de exemplo. Ele é marcado como “Dado de exemplo”.</p>' +
+        '<div class="list" style="gap:10px">' +
+          '<button class="btn btn-block" data-act="config.exemplos">Carregar dados de exemplo</button>' +
+          '<button class="btn btn-block btn-danger" data-act="config.apagar">Apagar todos os dados</button>' +
+        '</div></div>' +
+
+      '<div class="card"><div class="card-title"><h3>Versões</h3></div>' +
+        NOVIDADES.map((v) =>
+          '<div style="margin-bottom:14px"><div class="row spread"><strong>Versão ' + v.versao + '</strong>' +
+          '<span class="badge ' + (v.versao === VERSAO_ATUAL ? 'b-ok' : 'b-parado') + '">' + v.status + '</span></div>' +
+          '<ul class="muted small" style="margin:6px 0 0;padding-left:18px">' + v.itens.map((i) => '<li>' + esc(i) + '</li>').join('') + '</ul></div>'
+        ).join('') +
+      '</div>';
+  }
+
+  function depois(main) {
+    const nome = main.querySelector('#cfg-nome');
+    if (nome) nome.addEventListener('change', () => { Store.setConfig({ nomeLoja: nome.value.trim() || 'Maison de Lavande' }); UI.toast('Nome salvo'); });
+  }
+
+  function acao(nome, el) {
+    if (nome === 'exportar') {
+      const data = Calc.hojeISO().replace(/-/g, '');
+      baixar('maison-de-lavande-backup-' + data + '.json', Store.exportarJSON(), 'application/json');
+      return UI.toast('Backup baixado');
+    }
+    if (nome === 'csv') {
+      const data = Calc.hojeISO().replace(/-/g, '');
+      baixar('maison-de-lavande-vendas-' + data + '.csv', csvVendas(), 'text/csv;charset=utf-8');
+      return UI.toast('Planilha de vendas baixada');
+    }
+    if (nome === 'exemplos') {
+      if (!window.confirm('Carregar dados de exemplo? Isso substitui os dados atuais deste aparelho. Faça um backup antes, se já tiver registros.')) return;
+      const ex = gerarExemplos();
+      Store.carregarExemplos(ex.produtos, ex.vendas, ex.compras);
+      UI.toast('Exemplos carregados');
+      return root.App.rerender();
+    }
+    if (nome === 'apagar') {
+      if (!window.confirm('Apagar TODOS os dados deste aparelho? Essa ação não pode ser desfeita.')) return;
+      Store.limparTudo();
+      UI.toast('Dados apagados');
+      return root.App.rerender();
+    }
+  }
+
+  function mudou(nome, el) {
+    if (nome === 'importar') {
+      const arquivo = el.files && el.files[0];
+      if (!arquivo) return;
+      if (!window.confirm('Importar este backup? Ele substitui os dados atuais deste aparelho.')) { el.value = ''; return; }
+      const leitor = new FileReader();
+      leitor.onload = () => {
+        try {
+          Store.importarJSON(String(leitor.result));
+          UI.toast('Backup importado');
+          root.App.rerender();
+        } catch (e) {
+          window.alert('Não foi possível importar: ' + e.message);
+        }
+      };
+      leitor.readAsText(arquivo);
+    }
+  }
+
+  root.Views = root.Views || {};
+  root.Views.config = { render, depois, acao, mudou, VERSAO_ATUAL };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Maison de Lavande — inicialização, navegação inferior, seletor de mês e roteamento de ações.
+ * Ações nos botões usam data-act="modulo.acao" (ex.: vendas.salvar, compras.repor, app.ir).
+ */
+(function (root) {
+  'use strict';
+  const Calc = root.Calc, Store = root.Store, UI = root.UI;
+
+  const TELAS = [
+    { id: 'painel', nome: 'Painel', icone: UI.ICONES.painel },
+    { id: 'vendas', nome: 'Vendas', icone: UI.ICONES.vendas },
+    { id: 'compras', nome: 'Compras', icone: UI.ICONES.compras },
+    { id: 'estoque', nome: 'Estoque', icone: UI.ICONES.estoque },
+    { id: 'produtos', nome: 'Produtos', icone: UI.ICONES.produtos },
+  ];
+
+  function main() { return document.getElementById('app'); }
+
+  // Seletor de mês: não deixa avançar além do mês atual.
+  function mesNav() {
+    const atual = Calc.mesDe(Calc.hojeISO());
+    const mes = UI.state.mes;
+    return '<div class="card" style="padding:8px 10px;margin-bottom:0">' +
+      '<div class="row spread">' +
+        '<button class="btn btn-sm" data-act="app.mes" data-delta="-1" aria-label="Mês anterior">‹ Anterior</button>' +
+        '<strong>' + Calc.nomeMes(mes) + '</strong>' +
+        '<button class="btn btn-sm" data-act="app.mes" data-delta="1" aria-label="Próximo mês"' + (mes >= atual ? ' disabled' : '') + '>Próximo ›</button>' +
+      '</div></div>';
+  }
+
+  function desenharCabecalho() {
+    const cfg = Store.get().configuracoes;
+    const topo = document.getElementById('topbar-brand');
+    if (topo) topo.innerHTML = '<img class="brand-mark" src="icon-180.png" alt="">' +
+      '<div style="min-width:0"><div class="brand-title">' + UI.esc(cfg.nomeLoja) + '</div>' +
+      '<div class="brand-sub">Controle de vendas e estoque</div></div>';
+  }
+
+  function desenharAbas() {
+    const barra = document.getElementById('tabbar');
+    barra.innerHTML = TELAS.map((t) =>
+      '<button class="tab" data-act="app.ir" data-tela="' + t.id + '"' +
+      (UI.state.tela === t.id ? ' aria-current="page"' : '') + '>' +
+        '<span class="ico">' + t.icone + '</span><span>' + t.nome + '</span></button>'
+    ).join('');
+  }
+
+  function render() {
+    const tela = UI.state.tela;
+    const modulo = root.Views[tela] || root.Views.painel;
+    const el = main();
+    el.innerHTML = modulo.render();
+    if (modulo.depois) modulo.depois(el);
+    desenharAbas();
+    desenharCabecalho();
+    const topoConfig = document.getElementById('btn-config');
+    if (topoConfig) topoConfig.setAttribute('aria-current', tela === 'config' ? 'page' : 'false');
+  }
+
+  function ir(tela) {
+    UI.state.tela = tela;
+    UI.fecharFolha();
+    window.scrollTo(0, 0);
+    render();
+  }
+
+  function mudarMes(delta) {
+    const atual = Calc.mesDe(Calc.hojeISO());
+    const proximo = Calc.deslocarMes(UI.state.mes, delta);
+    if (proximo > atual) return;
+    UI.state.mes = proximo;
+    UI.state.cmpA = null;
+    UI.state.cmpB = null;
+    render();
+  }
+
+  // Roteia ações de clique: "modulo.acao".
+  function tratarAcao(el) {
+    const [modulo, nome] = String(el.dataset.act).split('.');
+    if (modulo === 'app') {
+      if (nome === 'mes') return mudarMes(Number(el.dataset.delta));
+      if (nome === 'ir') return ir(el.dataset.tela);
+      return;
+    }
+    const alvo = root.Views[modulo];
+    if (alvo && alvo.acao) alvo.acao(nome, el);
+  }
+
+  function init() {
+    Store.carregar();
+    UI.state.mes = Calc.mesDe(Calc.hojeISO());
+    UI.state.tela = 'painel';
+    document.getElementById('btn-config').addEventListener('click', () => ir('config'));
+
+    document.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-act]');
+      if (!el || el.disabled) return;
+      if (el.tagName === 'LABEL') return;
+      e.preventDefault();
+      tratarAcao(el);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') UI.fecharFolha();
+      if (e.key === 'Enter' && e.target.matches('[role="button"][data-act]')) tratarAcao(e.target);
+    });
+    document.addEventListener('change', (e) => {
+      const el = e.target.closest('[data-act-change]');
+      if (!el) return;
+      const [modulo, nome] = String(el.dataset.actChange).split('.');
+      const alvo = root.Views[modulo];
+      if (alvo && alvo.mudou) alvo.mudou(nome, el);
+    });
+
+    render();
+
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Sem suporte offline:', err));
+    }
+  }
+
+  // Mantém o seletor de mês e a navegação dentro de Views (usados pelas telas).
+  root.Views = root.Views || {};
+  root.Views.mesNav = mesNav;
+  root.App = { rerender: render, ir };
+
+  document.addEventListener('DOMContentLoaded', init);
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+</body>
+</html>
